@@ -5,8 +5,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-import my_debugger
-debugger = my_debugger.debugger()
+import windbg3
+debugger = windbg3.debugger()
 
 
 debugger.load("C:\\WINDOWS\\System32\\calc.exe")
