@@ -229,19 +229,24 @@ class debugger():
 
     def func_resolve(self, dll, function):
         
-        dll_a = create_string_buffer(bytes(dll, "utf-8"))
-        function_a = create_string_buffer(bytes(function, "utf-8"))
-
-        handle = kernel32.GetModuleHandleA(dll_a.value)
-        address = kernel32.GetProcAddress(handle, function_a.value)
+        dll_a = bytes(dll, "ascii")
+        function_a = bytes(function, "ascii")
+        
+        kernel32.GetModuleHandleA.argtypes = [LPCSTR]   
+        kernel32.GetModuleHandleA.restype = HANDLE
+        handle = kernel32.GetModuleHandleA(dll_a)
+        
+        kernel32.GetProcAddress.argtypes = [HANDLE, LPCSTR]
+        address = kernel32.GetProcAddress(handle, function_a)
         
         #Error hander of GetProcAddress
         if address == 0:
             error_num = kernel32.GetLastError()
             
-            print("GetLastError Failed with error code {}".format(error_num))
+            print("Getgetprocaddress Failed with error code {}".format(error_num))
             return None
-            
+           
+        kernel32.CloseHandle.argtypes = [HANDLE] 
         kernel32.CloseHandle(handle)
         return address
 
