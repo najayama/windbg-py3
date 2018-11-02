@@ -1,3 +1,5 @@
+###This file is debuggy for test of func_resolv method.
+
 from ctypes import *
 
 import time
