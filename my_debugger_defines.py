@@ -13,6 +13,7 @@ UINT_PTR  = c_ulong
 SIZE_T    = c_ulong
 DWORD64 = c_ulonglong
 
+
 # Constants
 DEBUG_PROCESS         = 0x00000001
 CREATE_NEW_CONSOLE    = 0x00000010
