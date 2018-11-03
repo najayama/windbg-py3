@@ -14,6 +14,7 @@ SIZE_T    = c_ulong
 DWORD64 = c_ulonglong
 LPCSTR = c_char_p
 BOOL = c_int
+LPCVOID = c_void_p
 
 # Constants
 DEBUG_PROCESS         = 0x00000001

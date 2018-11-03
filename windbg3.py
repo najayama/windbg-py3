@@ -16,7 +16,7 @@ class debugger():
         #mycode
         self.heap_handle = None
         
-    def load(self, path_to_exe):
+    def load(self, path_to_exe, cmdparams):
         creation_flags = CREATE_NEW_CONSOLE
         startupinfo = STARTUPINFO()
         process_information = PROCESS_INFORMATION()
@@ -26,7 +26,7 @@ class debugger():
         startupinfo.cb = sizeof(startupinfo)
 
         if kernel32.CreateProcessW(path_to_exe,
-                                   None,
+                                   cmdparams,
                                    None,
                                    None,
                                    None,
@@ -37,12 +37,14 @@ class debugger():
                                    byref(process_information)):
             print("[*] We have successfully launched the process!")
             print("[*] PID: %d" % process_information.dwProcessId)
+            self.pid = process_information.dwProcessId
             
             #get process handle
             self.h_process = self.open_process(self.pid)
+            self.debugger_active = True
             
         else:
-            print("[*] Error: 0x%08x." % kernel32.GetLastError())
+            print("[*] CreateProcess exited with Error Code {}".format(kernel32.GetLastError()))
                 
     def open_process(self, pid):
         
@@ -179,15 +181,20 @@ class debugger():
         return DBG_CONTINUE
 
     def read_process_memory(self, address, length):
-        data = ""
+        data = b""
         read_buf = create_string_buffer(length)
         count = c_ulong()
+        
+        p_address = LPCVOID(DWORD(address).value)
+        
 
         if not kernel32.ReadProcessMemory(self.h_process, 
-                                          address,
+                                          byref(DWORD64(address)),
                                           read_buf,
                                           length,
                                           byref(count)):
+            error_num = kernel32.GetLastError()
+            print("Error at ReadProcessMemory. Error code: {}".format(error_num))
             return False
         else:
             data += read_buf.raw
@@ -210,17 +217,18 @@ class debugger():
             return True
 
     def bp_set_sw(self, address):
-        print("[*] Setting breakpoint at: {:08x}".format(address))
+        print("[*] Setting breakpoint at: {:016x}".format(address))
         if not address in self.software_breakpoints:
             try:
                 #save original bytes
                 original_byte = self.read_process_memory(address, 1)
 
                 #Write INT3 (0xCC) to address
-                self.write_process_memory(address, b"\xCC")
-
-                #add breakpoint to internal dictoinary
-                self.software_braakpoints[address] = original_byte
+                if self.write_process_memory(address, b"\xCC"):
+                    #add breakpoint to internal dictoinary
+                    self.software_braakpoints[address] = original_byte
+                else:
+                    return False
 
             except:
                 return False
